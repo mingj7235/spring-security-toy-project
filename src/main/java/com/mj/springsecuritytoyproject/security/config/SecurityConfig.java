@@ -1,5 +1,7 @@
 package com.mj.springsecuritytoyproject.security.config;
 
+import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
+import com.mj.springsecuritytoyproject.security.handler.CustomAccessDeniedHandler;
 import com.mj.springsecuritytoyproject.security.provider.CustomAuthenticationProvider;
 import com.mj.springsecuritytoyproject.security.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +18,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Configuration
 @EnableWebSecurity
@@ -27,11 +33,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
 
-    private final AuthenticationDetailsSource authenticationDetailsSource;
+    private final FormAuthenticationDetailsSource authenticationDetailsSource;
 
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
 
     private final AuthenticationFailureHandler authenticationFailureHandler;
+
+    /**
+     * Bean 주입 시 setter 를 통해 errorPage url 을 세팅해 주는 것.
+     * 후에 동적으로 주입 해줄 수 있다.
+     */
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        CustomAccessDeniedHandler accessDeniedHandler = new CustomAccessDeniedHandler();
+        accessDeniedHandler.setErrorPage("/denied");
+        return accessDeniedHandler;
+    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -69,6 +86,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(authenticationSuccessHandler)
                 .failureHandler(authenticationFailureHandler)
                 .permitAll() // 인증 받지 않은 사용자도 접근하도록
+
+        .and()
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler())
+
+
         ;
     }
 
