@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
@@ -29,6 +30,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final AuthenticationDetailsSource authenticationDetailsSource;
 
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
+
+    private final AuthenticationFailureHandler authenticationFailureHandler;
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -51,7 +54,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(final HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                    .antMatchers("/", "/users").permitAll()
+                    .antMatchers("/", "/users", "user/login/**", "/login*").permitAll()
                     .antMatchers("/mypage").hasRole("USER")
                     .antMatchers("/messages").hasRole("MANAGER")
                     .antMatchers("/config").hasRole("ADMIN")
@@ -64,6 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationDetailsSource(authenticationDetailsSource) // 인증시 ID, PW 제외하고 별개의 detail 정보를 담기 위해서!
                 .defaultSuccessUrl("/")
                 .successHandler(authenticationSuccessHandler)
+                .failureHandler(authenticationFailureHandler)
                 .permitAll() // 인증 받지 않은 사용자도 접근하도록
         ;
     }

@@ -47,7 +47,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         // Detail 정보 검증
         FormWebAuthenticationDetails details = (FormWebAuthenticationDetails) authentication.getDetails();
         String secretKey = details.getSecretKey();
-        if (secretKey == null || !"secret".equals(secretKey)) {
+        if (secretKey == null || !secretKey.equals("secret")) {
             throw new InsufficientAuthenticationException("InsufficientAuthenticationException");
         }
 
