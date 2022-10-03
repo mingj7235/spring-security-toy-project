@@ -1,6 +1,8 @@
 package com.mj.springsecuritytoyproject.security.config;
 
+import com.mj.springsecuritytoyproject.security.common.AjaxLoginAuthenticationEntryPoint;
 import com.mj.springsecuritytoyproject.security.filter.AjaxLoginProcessingFilter;
+import com.mj.springsecuritytoyproject.security.handler.AjaxAccessDeniedHandler;
 import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationFailureHandler;
 import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationSuccessHandler;
 import com.mj.springsecuritytoyproject.security.provider.AjaxAuthenticationProvider;
@@ -16,6 +18,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -48,6 +51,11 @@ public class AjaxSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    public AccessDeniedHandler ajaxAccessDeniedHandler() {
+        return new AjaxAccessDeniedHandler();
+    }
+
+    @Bean
     public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
         AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter();
         ajaxLoginProcessingFilter.setAuthenticationManager(authenticationManagerBean());
@@ -70,13 +78,19 @@ public class AjaxSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .antMatcher("/api/**")
                 .authorizeRequests()
+                .antMatchers("/api/messages").hasRole("MANAGER")
                 .anyRequest().authenticated()
 
             .and()
-                .addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
-                ;
+        http
+                .exceptionHandling()
+                .authenticationEntryPoint(new AjaxLoginAuthenticationEntryPoint())
+                .accessDeniedHandler(ajaxAccessDeniedHandler());
+
     }
+
 
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
