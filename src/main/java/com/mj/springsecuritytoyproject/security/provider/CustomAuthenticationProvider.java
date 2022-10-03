@@ -1,12 +1,12 @@
 package com.mj.springsecuritytoyproject.security.provider;
 
+import com.mj.springsecuritytoyproject.security.common.FormWebAuthenticationDetails;
 import com.mj.springsecuritytoyproject.security.service.AccountContext;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -44,7 +44,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("BadCredentialsException");
         }
 
-        // 추가 검증을 여기서 더 해줄 수 있다.
+        // Detail 정보 검증
+        FormWebAuthenticationDetails details = (FormWebAuthenticationDetails) authentication.getDetails();
+        String secretKey = details.getSecretKey();
+        if (secretKey == null || !"secret".equals(secretKey)) {
+            throw new InsufficientAuthenticationException("InsufficientAuthenticationException");
+        }
 
 
         // 인증을 성공한 인증 객체를 만들어서 provider 를 호출한 manager 에게 리턴해준다.
