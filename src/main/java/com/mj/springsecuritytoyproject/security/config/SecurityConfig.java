@@ -1,10 +1,12 @@
 package com.mj.springsecuritytoyproject.security.config;
 
+import com.mj.springsecuritytoyproject.security.provider.CustomAuthenticationProvider;
 import com.mj.springsecuritytoyproject.security.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -22,18 +24,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
 
-    // 내가 만든 UserDetails 를 인식하도록 등록하는 것임.
-    // Spring Security 의 UserDetailsService 를 주입하고, 내가 Custom 한 UserDetailsService 를 구현했다면, 내가 만든 것이 인식됨
-
-    @Override
-    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService);
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        return new CustomAuthenticationProvider();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+
+    @Override
+    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
+        // provider 에서 userDetailsService 를 주입했으므로 provider 만을 등록 !
+        auth.authenticationProvider(authenticationProvider());
+    }
+
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
