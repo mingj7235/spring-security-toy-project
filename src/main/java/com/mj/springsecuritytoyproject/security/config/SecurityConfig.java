@@ -53,6 +53,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         .and()
                 .formLogin()
+                .loginPage("/login")
+                .loginProcessingUrl("/login_proc") // view 페이지의 post form 태그의 url -> Form 방식의 로그인을 SpringSecurity 에게 맡기는 것
+                .defaultSuccessUrl("/")
+                .permitAll() // 인증 받지 않은 사용자도 접근하도록
         ;
     }
 
