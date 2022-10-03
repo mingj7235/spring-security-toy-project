@@ -1,14 +1,14 @@
 package com.mj.springsecuritytoyproject.security.config;
 
 import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
-import com.mj.springsecuritytoyproject.security.filter.AjaxLoginProcessingFilter;
 import com.mj.springsecuritytoyproject.security.handler.CustomAccessDeniedHandler;
-import com.mj.springsecuritytoyproject.security.provider.CustomAuthenticationProvider;
+import com.mj.springsecuritytoyproject.security.provider.FormAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,8 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
+@Slf4j
+@Order(1)
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -49,15 +51,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        return new CustomAuthenticationProvider(userDetailsService, passwordEncoder());
-    }
-
-    @Bean
-    public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
-        AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter();
-        ajaxLoginProcessingFilter.setAuthenticationManager(authenticationManagerBean());
-        return ajaxLoginProcessingFilter;
+    public AuthenticationProvider formAuthenticationProvider() {
+        return new FormAuthenticationProvider(userDetailsService, passwordEncoder());
     }
 
     @Bean
@@ -66,17 +61,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-        // provider 에서 userDetailsService 를 주입했으므로 provider 만을 등록 !
-        auth.authenticationProvider(authenticationProvider());
+    public void configure(final WebSecurity web) throws Exception {
+        web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 
+    @Override
+    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
+        // provider 에서 userDetailsService 를 주입했으므로 provider 만을 등록 !
+        auth.authenticationProvider(formAuthenticationProvider());
+    }
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-
-        http
-                .csrf().disable();
 
         http
                 .authorizeRequests()
@@ -98,23 +94,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         .and()
                 .exceptionHandling()
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+                .accessDeniedPage("/denied")
                 .accessDeniedHandler(accessDeniedHandler())
-
-        .and()
-                .addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
-
-
         ;
     }
 
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
-
-    @Override
-    public void configure(final WebSecurity web) throws Exception {
-        web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
-    }
 
 }

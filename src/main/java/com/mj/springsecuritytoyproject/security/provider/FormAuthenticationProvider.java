@@ -12,10 +12,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
-public class CustomAuthenticationProvider implements AuthenticationProvider {
+public class FormAuthenticationProvider implements AuthenticationProvider {
 
     private final UserDetailsService userDetailsService;
 
@@ -41,28 +42,23 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         // Password 검증
         if (!passwordEncoder.matches(password, accountContext.getAccount().getPassword())){
-            throw new BadCredentialsException("BadCredentialsException");
+            throw new BadCredentialsException("Invalid Password");
         }
 
         // Detail 정보 검증
-        FormWebAuthenticationDetails details = (FormWebAuthenticationDetails) authentication.getDetails();
-        String secretKey = details.getSecretKey();
+        String secretKey = ( (FormWebAuthenticationDetails) authentication.getDetails() ).getSecretKey();
         if (secretKey == null || !secretKey.equals("secret")) {
             throw new InsufficientAuthenticationException("InsufficientAuthenticationException");
         }
 
-
         // 인증을 성공한 인증 객체를 만들어서 provider 를 호출한 manager 에게 리턴해준다.
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(accountContext.getAccount(), null, accountContext.getAuthorities());
-
-        return authenticationToken;
+        return new UsernamePasswordAuthenticationToken(accountContext.getAccount(), null, accountContext.getAuthorities());
     }
 
 
     @Override
     public boolean supports(final Class<?> authentication) {
-        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+        return authentication.equals(UsernamePasswordAuthenticationToken.class);
     }
 
 }
