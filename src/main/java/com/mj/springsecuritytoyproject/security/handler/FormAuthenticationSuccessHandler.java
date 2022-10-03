@@ -18,7 +18,7 @@ import java.io.IOException;
  * 인증에 성공한 후에 작업하는 핸들러.
  */
 @Component
-public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+public class FormAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     /**
      * 이전에 담고 있던 정보를 가져오기 위해서 Cache 정보를 가져온다.

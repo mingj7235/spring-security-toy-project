@@ -1,7 +1,7 @@
 package com.mj.springsecuritytoyproject.security.config;
 
 import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
-import com.mj.springsecuritytoyproject.security.handler.CustomAccessDeniedHandler;
+import com.mj.springsecuritytoyproject.security.handler.*;
 import com.mj.springsecuritytoyproject.security.provider.FormAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,17 +35,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final FormAuthenticationDetailsSource authenticationDetailsSource;
 
-    private final AuthenticationSuccessHandler authenticationSuccessHandler;
-
-    private final AuthenticationFailureHandler authenticationFailureHandler;
-
     /**
      * Bean 주입 시 setter 를 통해 errorPage url 을 세팅해 주는 것.
      * 후에 동적으로 주입 해줄 수 있다.
      */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
-        CustomAccessDeniedHandler accessDeniedHandler = new CustomAccessDeniedHandler();
+        FormAccessDeniedHandler accessDeniedHandler = new FormAccessDeniedHandler();
         accessDeniedHandler.setErrorPage("/denied");
         return accessDeniedHandler;
     }
@@ -59,6 +55,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+
+    @Bean
+    public AuthenticationSuccessHandler formAuthenticationSuccessHandler() {
+        return new FormAuthenticationSuccessHandler();
+    }
+
+    @Bean
+    public AuthenticationFailureHandler formAuthenticationFailureHandler() {
+        return new FormAuthenticationFailureHandler();
+    }
+
 
     @Override
     public void configure(final WebSecurity web) throws Exception {
@@ -88,8 +95,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl("/login_proc") // view 페이지의 post form 태그의 url -> Form 방식의 로그인을 SpringSecurity 에게 맡기는 것
                 .authenticationDetailsSource(authenticationDetailsSource) // 인증시 ID, PW 제외하고 별개의 detail 정보를 담기 위해서!
                 .defaultSuccessUrl("/")
-                .successHandler(authenticationSuccessHandler)
-                .failureHandler(authenticationFailureHandler)
+                .successHandler(formAuthenticationSuccessHandler())
+                .failureHandler(formAuthenticationFailureHandler())
                 .permitAll() // 인증 받지 않은 사용자도 접근하도록
 
         .and()
