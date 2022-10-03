@@ -1,7 +1,6 @@
 package com.mj.springsecuritytoyproject.security.config;
 
 import com.mj.springsecuritytoyproject.security.common.AjaxLoginAuthenticationEntryPoint;
-import com.mj.springsecuritytoyproject.security.filter.AjaxLoginProcessingFilter;
 import com.mj.springsecuritytoyproject.security.handler.AjaxAccessDeniedHandler;
 import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationFailureHandler;
 import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationSuccessHandler;
@@ -21,7 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Order(0)
 @Configuration
@@ -71,20 +69,21 @@ public class AjaxSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-        http
-                .csrf()
-                        .disable();
+//        http
+//                .csrf()
+//                        .disable();
 
         http
                 .antMatcher("/api/**")
                 .authorizeRequests()
                 .antMatchers("/api/messages").hasRole("MANAGER")
-                .anyRequest().authenticated()
+                .antMatchers("/api/login").permitAll()
+                .anyRequest().authenticated();
 
 
 //            .and()
 //                .addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
-                ;
+
         http
                 .exceptionHandling()
                 .authenticationEntryPoint(new AjaxLoginAuthenticationEntryPoint())
@@ -99,8 +98,9 @@ public class AjaxSecurityConfig extends WebSecurityConfigurerAdapter {
                 .apply(new AjaxLoginConfigurer<>())
                 .successHandlerAjax(ajaxAuthenticationSuccessHandler())
                 .failureHandlerAjax(ajaxAuthenticationFailureHandler())
-                .setAuthenticationManager(authenticationManagerBean())
+                .loginPage("/api/login")
                 .loginProcessingUrl("/api/login")
+                .setAuthenticationManager(authenticationManagerBean())
                 ;
     }
 
