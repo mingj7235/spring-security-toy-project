@@ -27,10 +27,11 @@
                 window.location = '/messages';
             },
             error : function(xhr, status, error) {
+                console.log(xhr)
                 console.log(error);
                 console.log(status);
-                if(xhr.responseJSON.status == '401'){
-                    window.location = '/api/login?error=true&exception=' + xhr.responseJSON.message;
+                if(xhr.status == '401'){
+                    window.location = '/api/login?error=true&exception=' + status;
                 }else if(xhr.responseJSON.status == '403'){
                     window.location = '/api/denied?exception=' + xhr.responseJSON.message;
                 }
