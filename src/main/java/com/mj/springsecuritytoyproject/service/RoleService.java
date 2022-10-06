@@ -8,6 +8,8 @@ public interface RoleService {
 
     Role getRole(long id);
 
+    Role findByRoleName (String name);
+
     List<Role> getRoles();
 
     void createRole(Role role);
