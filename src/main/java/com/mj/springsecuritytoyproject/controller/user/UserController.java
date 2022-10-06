@@ -1,7 +1,7 @@
 package com.mj.springsecuritytoyproject.controller.user;
 
 import com.mj.springsecuritytoyproject.domain.Account;
-import com.mj.springsecuritytoyproject.domain.AccountDto;
+import com.mj.springsecuritytoyproject.domain.dto.AccountDto;
 import com.mj.springsecuritytoyproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
