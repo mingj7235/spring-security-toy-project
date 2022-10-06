@@ -3,6 +3,8 @@ package com.mj.springsecuritytoyproject.security.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mj.springsecuritytoyproject.domain.dto.AccountDto;
 import com.mj.springsecuritytoyproject.security.token.AjaxAuthenticationToken;
+import com.mj.springsecuritytoyproject.util.WebUtil;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -37,7 +39,7 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException {
 
-        if (!isAjax(request)) {
+        if (!HttpMethod.POST.name().equals(request.getMethod()) || !WebUtil.isAjax(request)) {
             throw new IllegalArgumentException("Authentication method not supported");
         }
 
@@ -49,9 +51,5 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
         AjaxAuthenticationToken token = new AjaxAuthenticationToken(accountDto.getUsername(),accountDto.getPassword());
 
         return this.getAuthenticationManager().authenticate(token);
-    }
-
-    private boolean isAjax(HttpServletRequest request) {
-        return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
     }
 }

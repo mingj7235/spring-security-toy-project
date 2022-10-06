@@ -29,7 +29,7 @@ public class Account {
     private String email;
 
     @Column
-    private String age;
+    private int age;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade={CascadeType.ALL})
     @JoinTable(name = "account_roles",

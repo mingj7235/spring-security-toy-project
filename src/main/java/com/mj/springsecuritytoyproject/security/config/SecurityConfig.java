@@ -2,6 +2,7 @@ package com.mj.springsecuritytoyproject.security.config;
 
 import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
 import com.mj.springsecuritytoyproject.security.handler.*;
+import com.mj.springsecuritytoyproject.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import com.mj.springsecuritytoyproject.security.provider.AjaxAuthenticationProvider;
 import com.mj.springsecuritytoyproject.security.provider.FormAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.AffirmativeBased;
@@ -42,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
 
-    private final FormAuthenticationDetailsSource authenticationDetailsSource;
+    private final FormAuthenticationDetailsSource formWebAuthenticationDetailsSource;
 
     private final AuthenticationSuccessHandler formAuthenticationSuccessHandler;
 
@@ -62,15 +62,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
-    }
-
-    private void customConfigurer (HttpSecurity http) throws Exception {
-        http
-                .apply(new AjaxLoginConfigurer<>())
-                .successHandlerAjax(ajaxAuthenticationSuccessHandler())
-                .failureHandlerAjax(ajaxAuthenticationFailureHandler())
-                .loginProcessingUrl("/api/login")
-                .setAuthenticationManager(authenticationManagerBean());
     }
 
     @Bean
@@ -107,7 +98,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public FilterSecurityInterceptor customFilterSecurityInterceptor() throws Exception {
-
         FilterSecurityInterceptor filterSecurityInterceptor = new FilterSecurityInterceptor();
         filterSecurityInterceptor.setSecurityMetadataSource(urlFilterInvocationSecurityMetadataSource());
         filterSecurityInterceptor.setAccessDecisionManager(affirmativeBased());
@@ -116,47 +106,58 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private AccessDecisionManager affirmativeBased() {
-        AffirmativeBased affirmativeBased = new AffirmativeBased(getAccessDecistionVoters());
+        AffirmativeBased affirmativeBased = new AffirmativeBased(getAccessDecisionVoters());
         return affirmativeBased;
     }
 
-    private List<AccessDecisionVoter<?>> getAccessDecistionVoters() {
+    private List<AccessDecisionVoter<?>> getAccessDecisionVoters() {
         return Arrays.asList(new RoleVoter());
     }
 
     @Bean
     public FilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource() {
-        return new UrlFilterInvocationSecurityMetadatsSource();
+        return new UrlFilterInvocationSecurityMetadataSource();
     }
-
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
 
         http
                 .authorizeRequests()
-                    .antMatchers("/", "/users", "user/login/**", "/login*").permitAll()
                     .antMatchers("/mypage").hasRole("USER")
                     .antMatchers("/messages").hasRole("MANAGER")
                     .antMatchers("/config").hasRole("ADMIN")
+                    .antMatchers("/**").permitAll()
                 .anyRequest().authenticated()
 
         .and()
                 .formLogin()
                 .loginPage("/login")
                 .loginProcessingUrl("/login_proc") // view 페이지의 post form 태그의 url -> Form 방식의 로그인을 SpringSecurity 에게 맡기는 것
-                .authenticationDetailsSource(authenticationDetailsSource) // 인증시 ID, PW 제외하고 별개의 detail 정보를 담기 위해서!
-                .defaultSuccessUrl("/")
+                .authenticationDetailsSource(formWebAuthenticationDetailsSource) // 인증시 ID, PW 제외하고 별개의 detail 정보를 담기 위해서!
                 .successHandler(formAuthenticationSuccessHandler)
                 .failureHandler(formAuthenticationFailureHandler)
                 .permitAll() // 인증 받지 않은 사용자도 접근하도록
 
         .and()
                 .exceptionHandling()
+//                .authenticationEntryPoint(new AjaxLoginAuthenticationEntryPoint())
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                 .accessDeniedPage("/denied")
                 .accessDeniedHandler(accessDeniedHandler())
         ;
+        http.csrf().disable();
+
+        customConfigurer(http);
+    }
+
+    private void customConfigurer (HttpSecurity http) throws Exception {
+        http
+                .apply(new AjaxLoginConfigurer<>())
+                .successHandlerAjax(ajaxAuthenticationSuccessHandler())
+                .failureHandlerAjax(ajaxAuthenticationFailureHandler())
+                .loginProcessingUrl("/api/login")
+                .setAuthenticationManager(authenticationManagerBean());
     }
 
 

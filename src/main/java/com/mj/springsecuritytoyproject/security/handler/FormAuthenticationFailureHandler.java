@@ -1,6 +1,8 @@
 package com.mj.springsecuritytoyproject.security.handler;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -19,10 +21,12 @@ public class FormAuthenticationFailureHandler extends SimpleUrlAuthenticationFai
 
         String errorMessage = "Invalid Username or Password";
 
-        if (exception instanceof BadCredentialsException) {
+        if(exception instanceof BadCredentialsException) {
             errorMessage = "Invalid Username or Password";
-        } else if (exception instanceof InsufficientAuthenticationException) {
-            errorMessage = "Invalid Secret key";
+        } else if(exception instanceof DisabledException) {
+            errorMessage = "Locked";
+        } else if(exception instanceof CredentialsExpiredException) {
+            errorMessage = "Expired password";
         }
 
         setDefaultFailureUrl("/login?error=true&exception=" + errorMessage);

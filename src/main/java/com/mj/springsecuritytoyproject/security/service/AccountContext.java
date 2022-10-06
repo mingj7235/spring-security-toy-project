@@ -1,13 +1,13 @@
 package com.mj.springsecuritytoyproject.security.service;
 
 import com.mj.springsecuritytoyproject.domain.Account;
-import lombok.Getter;
+import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 
-@Getter
+@Data
 public class AccountContext extends User {
 
     private final Account account;
