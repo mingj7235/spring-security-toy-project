@@ -15,4 +15,8 @@ public class FormWebAuthenticationDetails extends WebAuthenticationDetails {
         secretKey = request.getParameter("secret_key"); // login view 에서 전달한 secret_key 가 매핑되어 저장
     }
 
+    public String getSecretKey() {
+
+        return secretKey;
+    }
 }
