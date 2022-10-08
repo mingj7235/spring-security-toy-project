@@ -96,6 +96,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return accessDeniedHandler;
     }
 
+    /**
+     * FilterSecurityInterceptor 를 커스텀 하여 Bean 등록
+     *  - FilterSecurityInterceptor 는 권한을 체크하는 마지막에 위치하는 Filter
+     *  - 인가처리를 내가 만든 UrlFilterInvocationSecurityMetadataSource 로 하도록 설정하는 것임.
+     *  - 이 필터를 커스텀하기 위해서는 3가지를 set 해줘야한다.
+     *      - setSecurityMetadataSource
+     *      - setAccessDecisionManager 결정 매니저
+     *      - setAuthenticationManager 인증 매니저
+     */
+
     @Bean
     public FilterSecurityInterceptor customFilterSecurityInterceptor() throws Exception {
         FilterSecurityInterceptor filterSecurityInterceptor = new FilterSecurityInterceptor();
@@ -105,13 +115,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return filterSecurityInterceptor;
     }
 
-    private AccessDecisionManager affirmativeBased() {
-        AffirmativeBased affirmativeBased = new AffirmativeBased(getAccessDecisionVoters());
-        return affirmativeBased;
+    private AccessDecisionManager affirmativeBased() { // 3가지 DecisionManager 중에 가장 무난한 녀석
+        return new AffirmativeBased(getAccessDecisionVoters());
     }
 
     private List<AccessDecisionVoter<?>> getAccessDecisionVoters() {
-        return Arrays.asList(new RoleVoter());
+        return List.of(new RoleVoter());
     }
 
     @Bean
@@ -124,10 +133,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                    .antMatchers("/mypage").hasRole("USER")
-                    .antMatchers("/messages").hasRole("MANAGER")
-                    .antMatchers("/config").hasRole("ADMIN")
-                    .antMatchers("/**").permitAll()
                 .anyRequest().authenticated()
 
         .and()
@@ -145,6 +150,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                 .accessDeniedPage("/denied")
                 .accessDeniedHandler(accessDeniedHandler())
+
+        // 등록한 인가 처리 필터의 위치를 지정한다.
+        .and()
+            .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class)
         ;
         http.csrf().disable();
 

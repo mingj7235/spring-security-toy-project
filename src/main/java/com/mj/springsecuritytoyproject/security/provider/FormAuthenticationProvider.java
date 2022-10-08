@@ -54,7 +54,6 @@ public class FormAuthenticationProvider implements AuthenticationProvider {
         return new UsernamePasswordAuthenticationToken(accountContext.getAccount(), null, accountContext.getAuthorities());
     }
 
-
     @Override
     public boolean supports(final Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
