@@ -1,13 +1,17 @@
 package com.mj.springsecuritytoyproject.security.config;
 
 import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
+import com.mj.springsecuritytoyproject.security.factory.UrlResourcesMapFactoryBean;
 import com.mj.springsecuritytoyproject.security.handler.*;
 import com.mj.springsecuritytoyproject.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import com.mj.springsecuritytoyproject.security.provider.AjaxAuthenticationProvider;
 import com.mj.springsecuritytoyproject.security.provider.FormAuthenticationProvider;
+import com.mj.springsecuritytoyproject.service.SecurityResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
@@ -31,7 +35,6 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -48,6 +51,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final AuthenticationFailureHandler formAuthenticationFailureHandler;
 
+    private final SecurityResourceService securityResourceService;
+
     @Override
     public void configure(final WebSecurity web) throws Exception {
         web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
@@ -62,6 +67,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+    /**
+     *
+     * 스프링 시큐리티 내에서 기본적으로 생성한 필터에 대해서는 정적 무시가 정상적으로 동작 했지만
+     * 우리가 새롭게 생성한 필터는 여전히 서블릿 필터에서도 호출이 되는 필터이기 때문에 정적 파일을 무시하지 못하고 가로채어 버리기 때문에
+     * 아래와 같은 별도의 설정이 필요함
+     */
+    @Bean
+    public FilterRegistrationBean filterRegistrationBean() throws Exception {
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+        filterRegistrationBean.setFilter(customFilterSecurityInterceptor());
+        filterRegistrationBean.setEnabled(false);
+        return filterRegistrationBean;
     }
 
     @Bean
@@ -123,9 +142,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return List.of(new RoleVoter());
     }
 
+    /**
+     * DB 에서 자원과 권한 정보를 가져오기 위해 Bean 을 등록하고,
+     * 그 Bean 을 커스텀한 FilterInvocationSecurityMetadataSource 에 등록한다.
+     */
     @Bean
-    public FilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource() {
-        return new UrlFilterInvocationSecurityMetadataSource();
+    public FilterInvocationSecurityMetadataSource urlFilterInvocationSecurityMetadataSource() throws Exception {
+        return new UrlFilterInvocationSecurityMetadataSource(urlResourcesMapFactoryBean().getObject());
+    }
+
+    private UrlResourcesMapFactoryBean urlResourcesMapFactoryBean() {
+
+        UrlResourcesMapFactoryBean urlResourcesMapFactoryBean = new UrlResourcesMapFactoryBean();
+        urlResourcesMapFactoryBean.setSecurityResourceService(securityResourceService);
+        return urlResourcesMapFactoryBean;
     }
 
     @Override

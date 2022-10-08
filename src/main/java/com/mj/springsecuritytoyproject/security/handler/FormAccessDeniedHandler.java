@@ -36,7 +36,7 @@ public class FormAccessDeniedHandler implements AccessDeniedHandler {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.getWriter().write(this.objectMapper.writeValueAsString(ResponseEntity.status(HttpStatus.FORBIDDEN)));
         } else {
-            String deniedUrl = errorPage + "?exception=" + accessDeniedException.getMessage();
+            String deniedUrl = errorPage + "?exception=" + "Access is denied";
             redirectStrategy.sendRedirect(request, response, deniedUrl);
         }
     }

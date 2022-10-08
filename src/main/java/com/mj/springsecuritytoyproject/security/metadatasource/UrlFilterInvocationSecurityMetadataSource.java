@@ -14,6 +14,7 @@ public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocati
 
     /**
      * LinkedHashMap
+     *  - 순서를 보장하기위해서 LinkedHashMap 을 사용한다.
      *
      * key : RequestMatcher , 즉 URL 정보
      * value : List<ConfigAttribute>>, 즉 권한들의 리스트
@@ -21,14 +22,14 @@ public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocati
      */
     private LinkedHashMap<RequestMatcher, List<ConfigAttribute>> requestMap = new LinkedHashMap<>();
 
+    public UrlFilterInvocationSecurityMetadataSource(final LinkedHashMap<RequestMatcher, List<ConfigAttribute>> resourcesMap) {
+        this.requestMap = resourcesMap;
+    }
 
     @Override
     public Collection<ConfigAttribute> getAttributes(final Object object) throws IllegalArgumentException {
 
         HttpServletRequest request = ((FilterInvocation) object).getRequest();
-
-        // Test 로 Matcher 와 ConfigAttribute 를 줘본다. (후에 DB로 변경)
-        requestMap.put(new AntPathRequestMatcher("/mypage"), List.of(new SecurityConfig("ROLE_USER")));
 
         if (requestMap != null) {
             for (Map.Entry<RequestMatcher, List<ConfigAttribute>> entry : requestMap.entrySet()) {
