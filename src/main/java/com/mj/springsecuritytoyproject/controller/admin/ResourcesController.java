@@ -3,6 +3,7 @@ package com.mj.springsecuritytoyproject.controller.admin;
 import com.mj.springsecuritytoyproject.domain.Resources;
 import com.mj.springsecuritytoyproject.domain.Role;
 import com.mj.springsecuritytoyproject.domain.dto.ResourcesDto;
+import com.mj.springsecuritytoyproject.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import com.mj.springsecuritytoyproject.service.ResourcesService;
 import com.mj.springsecuritytoyproject.service.RoleService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,8 @@ public class ResourcesController {
 
     private final RoleService roleService;
 
+    private final UrlFilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource;
+
     @GetMapping ("/admin/resources")
     public String getResources (Model model) {
         List<Resources> resources = resourcesService.getResources();
@@ -46,6 +49,7 @@ public class ResourcesController {
         resources.setRoleSet(roles);
 
         resourcesService.createResources(resources);
+        filterInvocationSecurityMetadataSource.reload();
 
         return "redirect:/admin/resources";
     }
@@ -82,6 +86,7 @@ public class ResourcesController {
     public String removeResources (@PathVariable String id, Model model) {
         Resources resources = resourcesService.getResources(Long.parseLong(id));
         resourcesService.deleteResources(Long.parseLong(id));
+        filterInvocationSecurityMetadataSource.reload();
 
         return "redirect:/admin/resources";
     }

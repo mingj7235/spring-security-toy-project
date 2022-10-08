@@ -1,15 +1,16 @@
 package com.mj.springsecuritytoyproject.security.metadatasource;
 
+import com.mj.springsecuritytoyproject.service.SecurityResourceService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
+@RequiredArgsConstructor
 public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
 
     /**
@@ -20,11 +21,15 @@ public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocati
      * value : List<ConfigAttribute>>, 즉 권한들의 리스트
      *
      */
-    private LinkedHashMap<RequestMatcher, List<ConfigAttribute>> requestMap = new LinkedHashMap<>();
+    private final LinkedHashMap<RequestMatcher, List<ConfigAttribute>> requestMap;
 
-    public UrlFilterInvocationSecurityMetadataSource(final LinkedHashMap<RequestMatcher, List<ConfigAttribute>> resourcesMap) {
-        this.requestMap = resourcesMap;
-    }
+    private final SecurityResourceService securityResourceService;
+
+//    public UrlFilterInvocationSecurityMetadataSource(final LinkedHashMap<RequestMatcher, List<ConfigAttribute>> resourcesMap,
+//                                                     SecurityResourceService securityResourceService) {
+//        this.requestMap = resourcesMap;
+//        this.securityResourceService = securityResourceService;
+//    }
 
     @Override
     public Collection<ConfigAttribute> getAttributes(final Object object) throws IllegalArgumentException {
@@ -57,6 +62,21 @@ public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocati
     @Override
     public boolean supports(final Class<?> clazz) {
         return FilterInvocation.class.isAssignableFrom(clazz);
+    }
+
+    /**
+     * DB 실시간 반영을 위한 메소드
+     */
+    public void reload() {
+        LinkedHashMap<RequestMatcher, List<ConfigAttribute>> reloadedMap = securityResourceService.getResourceList();
+        Iterator<Map.Entry<RequestMatcher, List<ConfigAttribute>>> iterator = reloadedMap.entrySet().iterator();
+
+        requestMap.clear();
+
+        while (iterator.hasNext()) {
+            Map.Entry<RequestMatcher, List<ConfigAttribute>> entry = iterator.next();
+            requestMap.put(entry.getKey(), entry.getValue());
+        }
     }
 
 }

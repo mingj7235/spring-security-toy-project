@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class AppConfig {
 
-    @Bean
-    public SecurityResourceService securityResourceService(ResourcesRepository resourcesRepository){
-        return new SecurityResourceService(resourcesRepository);
-    }
+//    @Bean
+//    public SecurityResourceService securityResourceService(ResourcesRepository resourcesRepository){
+//        return new SecurityResourceService(resourcesRepository);
+//    }
 
 }
