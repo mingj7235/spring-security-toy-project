@@ -2,6 +2,7 @@ package com.mj.springsecuritytoyproject.security.config;
 
 import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
 import com.mj.springsecuritytoyproject.security.factory.UrlResourcesMapFactoryBean;
+import com.mj.springsecuritytoyproject.security.filter.PermitAllFilter;
 import com.mj.springsecuritytoyproject.security.handler.*;
 import com.mj.springsecuritytoyproject.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import com.mj.springsecuritytoyproject.security.provider.AjaxAuthenticationProvider;
@@ -52,6 +53,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final AuthenticationFailureHandler formAuthenticationFailureHandler;
 
     private final SecurityResourceService securityResourceService;
+
+    private String [] permitAllResources = {"/", "/login", "/user/login/**"};
 
     @Override
     public void configure(final WebSecurity web) throws Exception {
@@ -124,14 +127,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      *      - setAccessDecisionManager 결정 매니저
      *      - setAuthenticationManager 인증 매니저
      */
-
     @Bean
-    public FilterSecurityInterceptor customFilterSecurityInterceptor() throws Exception {
-        FilterSecurityInterceptor filterSecurityInterceptor = new FilterSecurityInterceptor();
-        filterSecurityInterceptor.setSecurityMetadataSource(urlFilterInvocationSecurityMetadataSource());
-        filterSecurityInterceptor.setAccessDecisionManager(affirmativeBased());
-        filterSecurityInterceptor.setAuthenticationManager(authenticationManagerBean());
-        return filterSecurityInterceptor;
+    public PermitAllFilter customFilterSecurityInterceptor() throws Exception {
+
+        /**
+         * PermitAllFilter 가 FilterSecurityInterceptor 를 구현했으므로,
+         * 커스텀한 Filter를 등록해주는 것임.
+         */
+        PermitAllFilter permitAllFilter = new PermitAllFilter(permitAllResources);
+        permitAllFilter.setSecurityMetadataSource(urlFilterInvocationSecurityMetadataSource());
+        permitAllFilter.setAccessDecisionManager(affirmativeBased());
+        permitAllFilter.setAuthenticationManager(authenticationManagerBean());
+        return permitAllFilter;
     }
 
     private AccessDecisionManager affirmativeBased() { // 3가지 DecisionManager 중에 가장 무난한 녀석
