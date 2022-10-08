@@ -3,22 +3,24 @@ package com.mj.springsecuritytoyproject.security.config;
 import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
 import com.mj.springsecuritytoyproject.security.factory.UrlResourcesMapFactoryBean;
 import com.mj.springsecuritytoyproject.security.filter.PermitAllFilter;
-import com.mj.springsecuritytoyproject.security.handler.*;
+import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationFailureHandler;
+import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationSuccessHandler;
+import com.mj.springsecuritytoyproject.security.handler.FormAccessDeniedHandler;
 import com.mj.springsecuritytoyproject.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import com.mj.springsecuritytoyproject.security.provider.AjaxAuthenticationProvider;
 import com.mj.springsecuritytoyproject.security.provider.FormAuthenticationProvider;
 import com.mj.springsecuritytoyproject.service.SecurityResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.access.vote.RoleVoter;
+import org.springframework.security.access.vote.RoleHierarchyVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -36,6 +38,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -146,7 +149,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private List<AccessDecisionVoter<?>> getAccessDecisionVoters() {
-        return List.of(new RoleVoter());
+
+        List<AccessDecisionVoter<? extends Object>> accessDecisionVoters = new ArrayList<>();
+        accessDecisionVoters.add(roleVoter());
+
+        return accessDecisionVoters;
+    }
+
+    @Bean
+    public AccessDecisionVoter<? extends Object> roleVoter() {
+
+        RoleHierarchyVoter roleHierarchyVoter = new RoleHierarchyVoter(roleHierarchy());
+
+        return roleHierarchyVoter;
+    }
+
+    @Bean
+    public RoleHierarchyImpl roleHierarchy() {
+
+        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+
+        return roleHierarchy;
     }
 
     /**

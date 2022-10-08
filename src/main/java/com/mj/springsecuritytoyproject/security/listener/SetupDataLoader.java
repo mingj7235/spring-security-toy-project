@@ -3,7 +3,9 @@ package com.mj.springsecuritytoyproject.security.listener;
 import com.mj.springsecuritytoyproject.domain.Account;
 import com.mj.springsecuritytoyproject.domain.Resources;
 import com.mj.springsecuritytoyproject.domain.Role;
+import com.mj.springsecuritytoyproject.domain.RoleHierarchy;
 import com.mj.springsecuritytoyproject.repository.ResourcesRepository;
+import com.mj.springsecuritytoyproject.repository.RoleHierarchyRepository;
 import com.mj.springsecuritytoyproject.repository.RoleRepository;
 import com.mj.springsecuritytoyproject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
     private final ResourcesRepository resourcesRepository;
 
+    private final RoleHierarchyRepository roleHierarchyRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     private static AtomicInteger count = new AtomicInteger(0);
@@ -49,9 +53,13 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     private void setupSecurityResources() {
         Set<Role> roles = new HashSet<>();
         Role adminRole = createRoleIfNotFound("ROLE_ADMIN", "관리자");
+        Role managerRole = createRoleIfNotFound("ROLE_MANAGER", "매니저권한");
+        Role userRole = createRoleIfNotFound("ROLE_USER", "사용자권한");
         roles.add(adminRole);
         createResourceIfNotFound("/admin/**", "", roles, "url");
-        Account account = createUserIfNotFound("admin", "pass", "admin@gamil.com", 10, roles);
+        createUserIfNotFound("admin", "pass", "admin@gmail.com", 10, roles);
+        createRoleHierarchyIfNotFound(managerRole, adminRole);
+        createRoleHierarchyIfNotFound(userRole, managerRole);
     }
 
     @Transactional
@@ -105,5 +113,29 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         }
 
         return userRepository.save(account);
+    }
+
+    @Transactional
+    public void createRoleHierarchyIfNotFound(Role childRole, Role parentRole) {
+        RoleHierarchy roleHierarchy = roleHierarchyRepository.findByChildName(parentRole.getRoleName());
+
+        if (roleHierarchy == null) {
+            roleHierarchy = RoleHierarchy.builder()
+                    .childName(parentRole.getRoleName())
+                    .build();
+        }
+
+        RoleHierarchy parentRoleHierarchy = roleHierarchyRepository.save(roleHierarchy);
+
+        roleHierarchy = roleHierarchyRepository.findByChildName(childRole.getRoleName());
+
+        if (roleHierarchy == null) {
+            roleHierarchy =RoleHierarchy.builder()
+                    .childName(childRole.getRoleName())
+                    .build();
+        }
+
+        RoleHierarchy childRoleHierarchy = roleHierarchyRepository.save(roleHierarchy);
+        childRoleHierarchy.setParentName(parentRoleHierarchy);
     }
 }
