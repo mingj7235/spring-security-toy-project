@@ -1,6 +1,6 @@
 package com.mj.springsecuritytoyproject.security.init;
 
-import com.mj.springsecuritytoyproject.service.RoleHierarchyService;
+import com.mj.springsecuritytoyproject.service.RoleHierarchyInitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -15,13 +15,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SecurityInitializer implements ApplicationRunner {
 
-    private final RoleHierarchyService roleHierarchyService;
+    private final RoleHierarchyInitService roleHierarchyInitService;
 
     private final RoleHierarchyImpl roleHierarchy;
 
     @Override
-    public void run(final ApplicationArguments args) throws Exception {
-        String allHierarchy = roleHierarchyService.findAllHierarchy();
+    public void run(final ApplicationArguments args) {
+        String allHierarchy = roleHierarchyInitService.findAllHierarchy();
         roleHierarchy.setHierarchy(allHierarchy);
     }
 
