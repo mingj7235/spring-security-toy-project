@@ -181,19 +181,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
 
         .and()
-                .formLogin()
+//                .formLogin()
 //                .disable().headers().frameOptions().disable()
-                .loginPage("/login")
-                .loginProcessingUrl("/login_proc") // view 페이지의 post form 태그의 url -> Form 방식의 로그인을 SpringSecurity 에게 맡기는 것
-                .authenticationDetailsSource(formWebAuthenticationDetailsSource) // 인증시 ID, PW 제외하고 별개의 detail 정보를 담기 위해서!
-                .successHandler(formAuthenticationSuccessHandler)
-                .failureHandler(formAuthenticationFailureHandler)
-                .permitAll() // 인증 받지 않은 사용자도 접근하도록
 
-        .and()
+//                .loginPage("/login")
+//                .loginProcessingUrl("/login_proc") // view 페이지의 post form 태그의 url -> Form 방식의 로그인을 SpringSecurity 에게 맡기는 것
+//                .authenticationDetailsSource(formWebAuthenticationDetailsSource) // 인증시 ID, PW 제외하고 별개의 detail 정보를 담기 위해서!
+//                .successHandler(formAuthenticationSuccessHandler)
+//                .failureHandler(formAuthenticationFailureHandler)
+//                .permitAll() // 인증 받지 않은 사용자도 접근하도록
+
+//        .and()
                 .exceptionHandling()
 //                .authenticationEntryPoint(new AjaxLoginAuthenticationEntryPoint())
-                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+//                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                 .accessDeniedPage("/denied")
                 .accessDeniedHandler(accessDeniedHandler())
         .and()
@@ -201,8 +202,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // 등록한 인가 처리 필터의 위치를 지정한다.
         .and()
-                .addFilter(new JwtAuthenticationFilter())
-                .addFilterBefore(new JwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilter(new JwtAuthenticationFilter(authenticationManagerBean()))
+                .addFilterBefore(new JwtAuthorizationFilter(authenticationManagerBean(), userDetailsService()), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class)
         ;
         http.csrf().disable();
