@@ -1,13 +1,7 @@
 package com.mj.springsecuritytoyproject.security.listener;
 
-import com.mj.springsecuritytoyproject.domain.Account;
-import com.mj.springsecuritytoyproject.domain.Resources;
-import com.mj.springsecuritytoyproject.domain.Role;
-import com.mj.springsecuritytoyproject.domain.RoleHierarchy;
-import com.mj.springsecuritytoyproject.repository.ResourcesRepository;
-import com.mj.springsecuritytoyproject.repository.RoleHierarchyRepository;
-import com.mj.springsecuritytoyproject.repository.RoleRepository;
-import com.mj.springsecuritytoyproject.repository.UserRepository;
+import com.mj.springsecuritytoyproject.domain.*;
+import com.mj.springsecuritytoyproject.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -34,6 +28,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
     private final RoleHierarchyRepository roleHierarchyRepository;
 
+    private final AccessIpRepository accessIpRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     private static AtomicInteger count = new AtomicInteger(0);
@@ -46,6 +42,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         }
 
         setupSecurityResources();
+
+        setupAccessIpData();
 
         alreadySetup = true;
     }
@@ -137,5 +135,16 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
         RoleHierarchy childRoleHierarchy = roleHierarchyRepository.save(roleHierarchy);
         childRoleHierarchy.setParentName(parentRoleHierarchy);
+    }
+
+    private void setupAccessIpData () {
+
+        AccessIp byIpAddress = accessIpRepository.findByIpAddress("0:0:0:0:0:0:0:1");
+        if (byIpAddress == null) {
+            AccessIp accessIp = AccessIp.builder()
+                    .ipAddress("0:0:0:0:0:0:0:1")
+                    .build();
+            accessIpRepository.save(accessIp);
+        }
     }
 }
