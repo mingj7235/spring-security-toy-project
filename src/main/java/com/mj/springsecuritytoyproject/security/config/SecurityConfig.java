@@ -101,21 +101,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationProvider ajaxAuthenticationProvider(){
-        return new AjaxAuthenticationProvider(userDetailsService, passwordEncoder());
-    }
-
-    @Bean
-    public AjaxAuthenticationSuccessHandler ajaxAuthenticationSuccessHandler(){
-        return new AjaxAuthenticationSuccessHandler();
-    }
-
-    @Bean
-    public AjaxAuthenticationFailureHandler ajaxAuthenticationFailureHandler(){
-        return new AjaxAuthenticationFailureHandler();
-    }
-
-    @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         FormAccessDeniedHandler accessDeniedHandler = new FormAccessDeniedHandler();
         accessDeniedHandler.setErrorPage("/denied");
@@ -160,18 +145,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public AccessDecisionVoter<? extends Object> roleVoter() {
-
-        RoleHierarchyVoter roleHierarchyVoter = new RoleHierarchyVoter(roleHierarchy());
-
-        return roleHierarchyVoter;
+        return new RoleHierarchyVoter(roleHierarchy());
     }
 
     @Bean
     public RoleHierarchyImpl roleHierarchy() {
-
-        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-
-        return roleHierarchy;
+        return new RoleHierarchyImpl();
     }
 
     /**
@@ -219,7 +198,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         ;
         http.csrf().disable();
 
-        customConfigurer(http);
+//        customConfigurer(http);
     }
 
     private void customConfigurer (HttpSecurity http) throws Exception {
@@ -229,6 +208,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .failureHandlerAjax(ajaxAuthenticationFailureHandler())
                 .loginProcessingUrl("/api/login")
                 .setAuthenticationManager(authenticationManagerBean());
+    }
+
+    @Bean
+    public AuthenticationProvider ajaxAuthenticationProvider(){
+        return new AjaxAuthenticationProvider(userDetailsService, passwordEncoder());
+    }
+
+    @Bean
+    public AjaxAuthenticationSuccessHandler ajaxAuthenticationSuccessHandler(){
+        return new AjaxAuthenticationSuccessHandler();
+    }
+
+    @Bean
+    public AjaxAuthenticationFailureHandler ajaxAuthenticationFailureHandler(){
+        return new AjaxAuthenticationFailureHandler();
     }
 
 

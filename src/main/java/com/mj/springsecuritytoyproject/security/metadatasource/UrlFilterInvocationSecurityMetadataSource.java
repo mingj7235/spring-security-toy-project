@@ -25,12 +25,6 @@ public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocati
 
     private final SecurityResourceService securityResourceService;
 
-//    public UrlFilterInvocationSecurityMetadataSource(final LinkedHashMap<RequestMatcher, List<ConfigAttribute>> resourcesMap,
-//                                                     SecurityResourceService securityResourceService) {
-//        this.requestMap = resourcesMap;
-//        this.securityResourceService = securityResourceService;
-//    }
-
     @Override
     public Collection<ConfigAttribute> getAttributes(final Object object) throws IllegalArgumentException {
 
