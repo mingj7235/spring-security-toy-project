@@ -3,10 +3,10 @@ package com.mj.springsecuritytoyproject.service.impl;
 import com.mj.springsecuritytoyproject.domain.Role;
 import com.mj.springsecuritytoyproject.domain.RoleHierarchy;
 import com.mj.springsecuritytoyproject.repository.RoleHierarchyRepository;
-import com.mj.springsecuritytoyproject.security.init.SecurityInitializer;
+import com.mj.springsecuritytoyproject.service.RoleHierarchyInitService;
 import com.mj.springsecuritytoyproject.service.RoleHierarchyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.ApplicationArguments;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +19,9 @@ public class RoleHierarchyServiceImpl implements RoleHierarchyService {
 
     private final RoleHierarchyRepository roleHierarchyRepository;
 
-    private final SecurityInitializer securityInitializer;
+    private final RoleHierarchyInitService roleHierarchyInitService;
 
-    private final ApplicationArguments argsConstructor;
+    private final RoleHierarchyImpl roleHierarchyImpl;
 
     @Override
     public RoleHierarchy findByChildName(final String childName) {
@@ -69,7 +69,11 @@ public class RoleHierarchyServiceImpl implements RoleHierarchyService {
         RoleHierarchy childRoleHierarchy = roleHierarchyRepository.save(roleHierarchy);
         childRoleHierarchy.setParentName(parentRoleHierarchy);
 
-        securityInitializer.run(argsConstructor);
+        /**
+         * 확인
+         */
+        String allHierarchy = roleHierarchyInitService.findAllHierarchy();
+        roleHierarchyImpl.setHierarchy(allHierarchy);
     }
 
 }

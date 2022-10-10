@@ -2,6 +2,8 @@ package com.mj.springsecuritytoyproject.security.config;
 
 import com.mj.springsecuritytoyproject.security.common.FormAuthenticationDetailsSource;
 import com.mj.springsecuritytoyproject.security.factory.UrlResourcesMapFactoryBean;
+import com.mj.springsecuritytoyproject.security.filter.JwtAuthenticationFilter;
+import com.mj.springsecuritytoyproject.security.filter.JwtAuthorizationFilter;
 import com.mj.springsecuritytoyproject.security.filter.PermitAllFilter;
 import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationFailureHandler;
 import com.mj.springsecuritytoyproject.security.handler.AjaxAuthenticationSuccessHandler;
@@ -29,6 +31,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +41,7 @@ import org.springframework.security.web.access.intercept.FilterSecurityIntercept
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -178,6 +182,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         .and()
                 .formLogin()
+//                .disable().headers().frameOptions().disable()
                 .loginPage("/login")
                 .loginProcessingUrl("/login_proc") // view 페이지의 post form 태그의 url -> Form 방식의 로그인을 SpringSecurity 에게 맡기는 것
                 .authenticationDetailsSource(formWebAuthenticationDetailsSource) // 인증시 ID, PW 제외하고 별개의 detail 정보를 담기 위해서!
@@ -191,10 +196,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                 .accessDeniedPage("/denied")
                 .accessDeniedHandler(accessDeniedHandler())
+        .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         // 등록한 인가 처리 필터의 위치를 지정한다.
         .and()
-            .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class)
+                .addFilter(new JwtAuthenticationFilter())
+                .addFilterBefore(new JwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class)
         ;
         http.csrf().disable();
 
